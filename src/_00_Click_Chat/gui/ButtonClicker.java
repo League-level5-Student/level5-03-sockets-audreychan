@@ -22,7 +22,7 @@ public class ButtonClicker extends JFrame {
 		
 		int response = JOptionPane.showConfirmDialog(null, "Would you like to host a connection?", "Buttons!", JOptionPane.YES_NO_OPTION);
 		if(response == JOptionPane.YES_OPTION){
-			server = new Server(8080);
+			server = new Server(80);
 			setTitle("SERVER");
 			JOptionPane.showMessageDialog(null, "Server started at: " + server.getIPAddress() + "\nPort: " + server.getPort());
 			button.addActionListener((e)->{
@@ -50,4 +50,5 @@ public class ButtonClicker extends JFrame {
 			client.start();
 		}
 	}
+	//192.168.7.123
 }

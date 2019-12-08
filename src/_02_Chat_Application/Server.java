@@ -7,15 +7,15 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 public class Server {
 	private int port;
 
 	private ServerSocket server;
-	private Socket connection;
+	Socket connection;
 	
-	String connected;
 	String recievedMessage;
 
 	DataOutputStream out;
@@ -24,16 +24,30 @@ public class Server {
 	public Server(int port) {
 		this.port = port;
 		
-		connected = "Unconnected.";
 		recievedMessage = "";
 	}
 	
-	public void start() {
+	public void start(JLabel connectedLabel, JLabel[] messages) {
 		try {
-			server = new ServerSocket();
-			connected = "Waiting for connection...";
+			server = new ServerSocket(port);
+			//connectedLabel.setText("Waiting for connection...");
+			Thread thread1 = new Thread(()-> {
+				for(int i = 0; true; i++) {
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					if(i%3 == 0) connectedLabel.setText("Waiting for connection.");
+					else if(i%3 == 1) connectedLabel.setText("Waiting for connection..");
+					else if(i%3 == 2) connectedLabel.setText("Waiting for connection...");
+				}
+			});
+			thread1.start();
 			connection = server.accept();
-			connected = "Connected!";
+			thread1.stop();
+			connectedLabel.setText("Connected!");
 			
 			out = new DataOutputStream(connection.getOutputStream());
 			in = new DataInputStream(connection.getInputStream());
@@ -43,14 +57,18 @@ public class Server {
 			while(connection.isConnected()) {
 				try {
 					recievedMessage = in.readUTF();
+					for(int i = 0; i < messages.length-1; i++) {
+						messages[i].setText(messages[i+1].getText());
+					}
+					messages[messages.length-1].setText(recievedMessage);
 				}catch(EOFException e) {
-					connected = "Connection lost.";
-					System.exit(0);
+					connectedLabel.setText("Connection lost.");
+					break;
 				}
 			}
 		}
 		catch(Exception e) {
-			e.printStackTrace();
+			connectedLabel.setText("Connection lost.");
 		}
 	}
 	

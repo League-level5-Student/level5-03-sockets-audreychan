@@ -27,7 +27,7 @@ public class Server {
 	public void start(){
 		try {
 			server = new ServerSocket(port, 100);
-
+			
 			connection = server.accept();
 
 			os = new ObjectOutputStream(connection.getOutputStream());
