@@ -1,5 +1,6 @@
 package _02_Chat_Application;
 
+import java.awt.Color;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
@@ -39,15 +40,27 @@ public class Server {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					if(i%3 == 0) connectedLabel.setText("Waiting for connection.");
-					else if(i%3 == 1) connectedLabel.setText("Waiting for connection..");
-					else if(i%3 == 2) connectedLabel.setText("Waiting for connection...");
+					
+					if(ChatApp.isLight) {
+						if(i%3 == 0) connectedLabel.setText("Waiting for connection.");
+						else if(i%3 == 1) connectedLabel.setText("Waiting for connection..");
+						else if(i%3 == 2) connectedLabel.setText("Waiting for connection...");
+					}
+					else {
+						if(i%3 == 0) connectedLabel.setText("<html><pre><font color =\"white\">Waiting for connection.</pre></html>");
+						else if(i%3 == 1) connectedLabel.setText("<html><pre><font color =\"white\">Waiting for connection..</pre></html>");
+						else if(i%3 == 2) connectedLabel.setText("<html><pre><font color =\"white\">Waiting for connection...</pre></html>");
+					}
 				}
 			});
 			thread1.start();
 			connection = server.accept();
 			thread1.stop();
-			connectedLabel.setText("Connected!");
+			
+			if(ChatApp.isLight)
+				connectedLabel.setText("Connected!");
+			else
+				connectedLabel.setText("<html><pre><font color =\"white\">Connected!</pre></html>");
 			
 			out = new DataOutputStream(connection.getOutputStream());
 			in = new DataInputStream(connection.getInputStream());
@@ -57,18 +70,25 @@ public class Server {
 			while(connection.isConnected()) {
 				try {
 					recievedMessage = in.readUTF();
-					for(int i = 0; i < messages.length-1; i++) {
-						messages[i].setText(messages[i+1].getText());
-					}
-					messages[messages.length-1].setText(recievedMessage);
+					ChatApp.addMessage(recievedMessage);
+					if(ChatApp.isLight)
+						messages[messages.length-1].setBackground(new Color(205, 250, 212));
+					else
+						messages[messages.length-1].setBackground(new Color(2, 97, 14));
 				}catch(EOFException e) {
-					connectedLabel.setText("Connection lost.");
+					if(ChatApp.isLight)
+						connectedLabel.setText("Connection Lost.");
+					else
+						connectedLabel.setText("<html><pre><font color =\"white\">Connection lost.</pre></html>");
 					break;
 				}
 			}
 		}
 		catch(Exception e) {
-			connectedLabel.setText("Connection lost.");
+			if(ChatApp.isLight)
+				connectedLabel.setText("Connection Lost.");
+			else
+				connectedLabel.setText("<html><pre><font color =\"white\">Connection lost.</pre></html>");
 		}
 	}
 	

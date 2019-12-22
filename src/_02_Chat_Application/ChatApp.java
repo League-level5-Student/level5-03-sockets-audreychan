@@ -24,12 +24,14 @@ public class ChatApp implements ActionListener, KeyListener {
 	JFrame frame;
 	JPanel panel;
 	JLabel connectedLabel;
-	JLabel[] messages = new JLabel[25];
-	JPanel[] messagePanels = new JPanel[25];
+	JLabel spacer;
+	JButton clear;
+	static JLabel[] messages = new JLabel[20];
 	JTextField messageBox;
 	JButton send;
 
 	String name;
+	static boolean isLight;
 	
 	Server server;
 	Client client;
@@ -42,11 +44,20 @@ public class ChatApp implements ActionListener, KeyListener {
 		frame = new JFrame();
 		panel = new JPanel();
 		connectedLabel = new JLabel();
+		spacer = new JLabel();
+		clear = new JButton("Clear Messages");
 		messageBox = new JTextField();
 		send = new JButton("Send");
 		
+		int light = JOptionPane.showConfirmDialog(null, "Light mode?");
+		if(light == 0) isLight = true;
+		else isLight = false;
+		
+		if(!isLight) panel.setBackground(new Color(31, 31, 31));
 		frame.add(panel);
 		panel.add(connectedLabel);
+		panel.add(spacer);
+		panel.add(clear);
 		
 		for(int i = 0; i < messages.length; i++) {
 			messages[i] = new JLabel();
@@ -57,10 +68,13 @@ public class ChatApp implements ActionListener, KeyListener {
 		panel.add(messageBox);
 		panel.add(send);
 		
+		spacer.setPreferredSize(new Dimension(400, 2));
+		clear.addActionListener(this);
 		send.addActionListener(this);
 		messageBox.addKeyListener(this);
 		messageBox.setPreferredSize(new Dimension(300, 20));
 		messageBox.setText(" ");
+		messageBox.requestFocus();
 		
 		name = JOptionPane.showInputDialog("Enter a username: ");
 		
@@ -72,28 +86,71 @@ public class ChatApp implements ActionListener, KeyListener {
 		/*=================================================*/
 		
 		server = new Server(80);
-		connectedLabel.setText("Unconnected.");
+		if(isLight) connectedLabel.setText("Unconnected.");
+		else connectedLabel.setText("<html><pre><font color =\"white\"> Unconnected. </pre></html>");
 		server.start(connectedLabel, messages);
 		
 	}
 	
-	void sendMessage() {
+	public static void addMessage(String message) {
 		for(int i = 0; i < messages.length-1; i++) {
 			messages[i].setText(messages[i+1].getText());
+			messages[i].setOpaque(true);
+			messages[i].setBackground(messages[i+1].getBackground());
+			messages[i].setPreferredSize(messages[i+1].getPreferredSize());
 		}
-		messages[messages.length-1].setText(name + ":" + messageBox.getText());
+		
+		String formatted = formatMessage(message, messages[messages.length-1]);
+		
+		if(isLight) 
+			messages[messages.length-1].setText("<html><pre><font face = \"roboto\">    " + formatted + "</pre></html>");
+		else
+			messages[messages.length-1].setText("<html><pre><font color =\"white\">    " + formatted + "</pre></html>");
 		messages[messages.length-1].setOpaque(true);
-		messages[messages.length-1].setBackground(new Color(202, 244, 255));
-		//if(!server.connection.isConnected())messages[messages.length-1].setText(name + ":" + messageBox.getText() + " (sent into the void)"); 
+	}
+	
+	void sendMessage() {
+		addMessage(name + ": " + messageBox.getText());
+		if(isLight)
+			messages[messages.length-1].setBackground(new Color(186, 216, 250));
+		else
+			messages[messages.length-1].setBackground(new Color(0, 53, 133));
 		
 		server.send(name + ": " + messageBox.getText());
 		messageBox.setText(" ");
+	}
+	
+	public static String formatMessage(String message, JLabel label) {
+		String fin = "";
+		int lineCount = 1;
+		int size = 40;
+		
+		while(message.length() > size) {
+			fin += message.substring(0, size) + "\n   ";
+			message = message.substring(size+1);
+			lineCount++;
+		}
+		fin += message;
+		label.setPreferredSize(new Dimension(400, lineCount*20));
+		
+		return fin;
+	}
+	
+	void clearMessages() {
+		for(int i = 0; i < messages.length; i++) {
+			messages[i].setText("");
+			messages[i].setBackground(null);
+			messages[i].setPreferredSize(new Dimension(400, 20));
+		}
+		messageBox.requestFocus();
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
-		sendMessage();
+		JButton b = (JButton)e.getSource();
+		if(b.equals(send)) sendMessage();
+		else if(b.equals(clear)) clearMessages();
 	}
 
 	@Override
@@ -112,4 +169,6 @@ public class ChatApp implements ActionListener, KeyListener {
 		// TODO Auto-generated method stub
 		
 	}
+	// 11111111111111111111111111111111111 1111112222222222222222222222222222222222222 222222
+	//<font face=\"veranda\">
 }
